@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+  app:
+    restart: always
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    command: >
+      sh -c "chmod -R 777 /code/logs && python3 manage.py makemigrations --merge && python3 manage.py makemigrations panasonic_app org_planning rp production_planning aop_planning && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+
+  redis:
+    image: redis:alpine
+    environment:
+      - TZ=Asia/Kolkata
+      - DEBIAN_FRONTEND=noninteractive
+
+  celery-beat:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+        bash -c "celery -A panasonic beat  -l info"
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+      - app
+  celery-worker:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+        bash -c "celery -A panasonic  worker -l info"
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+      - app

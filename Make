@@ -1,0 +1,8 @@
+CC=gcc
+CFLAGS=-c -Wall
+
+sonar:
+	sonar-scanner-4.7.0.2747-windows\bin\sonar-scanner.bat -D"project.settings=../sonar.properties"
+
+run:
+	python manage.py runserver
